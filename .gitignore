@@ -1,0 +1,77 @@
+# --------------------
+# Go build artifacts
+# --------------------
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Binaries (common names)
+bin/
+dist/
+build/
+out/
+fjm
+
+# Go workspace / modules
+go.work
+go.work.sum
+
+# Coverage / profiling
+coverage.out
+*.coverprofile
+*.prof
+*.pprof
+
+# --------------------
+# IDE / editor files
+# --------------------
+.vscode/
+.idea/
+*.swp
+*.swo
+*.tmp
+*.log
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+desktop.ini
+
+# --------------------
+# Dependency dirs (if not using modules)
+# --------------------
+vendor/
+
+# --------------------
+# Env / secrets
+# --------------------
+.env
+.env.*
+!.env.example
+
+# --------------------
+# CLI / Cobra specific
+# --------------------
+# Generated docs
+docs/
+man/
+
+# --------------------
+# Test artifacts
+# --------------------
+testdata/tmp/
+tmp/
+*.crt
+*.zip
+
+# --------------------
+# OS / misc
+# --------------------
+*.bak
+*.orig
