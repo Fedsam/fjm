@@ -20,12 +20,12 @@ func Install(p *platform.Platform, v int8) error {
 	fmt.Printf("downloading jdk %d...\n", v)
 	tmpFile, err := Download(buildUrl(p, v), tmpDir)
 	if err != nil {
-		os.RemoveAll(tmpDir)
+		_ = os.RemoveAll(tmpDir)
 		return fmt.Errorf("installing jdk %d, cause: %w", v, err)
 	}
 
 	if err = Extract(p.OS, tmpFile, tmpDir); err != nil {
-		os.RemoveAll(tmpDir)
+		_ = os.RemoveAll(tmpDir)
 		return err
 	}
 
@@ -38,16 +38,15 @@ func Install(p *platform.Platform, v int8) error {
 		return err
 	}
 
-	installed_version := release["JAVA_VERSION"]
+	installedVersion := release["JAVA_VERSION"]
 
-	finalPath := filepath.Join(versionsDir, installed_version)
-	// finalPath := filepath.Join(versionsDir, fmt.Sprintf("%s", version))
+	finalPath := filepath.Join(versionsDir, installedVersion)
 	if err = os.Rename(tmpDir, finalPath); err != nil {
-		os.RemoveAll(tmpDir)
-		return fmt.Errorf("install jdk %s: %w", installed_version, err)
+		_ = os.RemoveAll(tmpDir)
+		return fmt.Errorf("install jdk %s: %w", installedVersion, err)
 	}
 
-	fmt.Printf("jdk %s installed successfully!\n", installed_version)
+	fmt.Printf("jdk %s installed successfully!\n", installedVersion)
 	return nil
 }
 

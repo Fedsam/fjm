@@ -1,7 +1,6 @@
 package paths
 
 import (
-	"os"
 	"path/filepath"
 )
 
@@ -19,13 +18,4 @@ func AliasesDir() string {
 
 func CertsDir() string {
 	return filepath.Join(dataHomeDir(), "certs")
-}
-
-func dataHomeDir() string {
-	state := os.Getenv("XDG_DATA_HOME")
-	if state == "" {
-		home, _ := os.UserHomeDir()
-		state = filepath.Join(home, ".local", "share", "fjm")
-	}
-	return state
 }

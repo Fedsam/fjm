@@ -3,7 +3,9 @@ package install
 import (
 	"archive/tar"
 	"archive/zip"
+	"bytes"
 	"compress/gzip"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -14,7 +16,12 @@ import (
 )
 
 func Extract(currentOS platform.OS, src, destDir string) error {
-	if strings.HasSuffix(src, ".zip") {
+	archiveType, err := detectArchiveType(src)
+	if err != nil {
+		return err
+	}
+
+	if archiveType == "zip" {
 		if err := ExtractZip(src, destDir); err != nil {
 			return err
 		}
@@ -34,7 +41,16 @@ func ExtractZip(zipPath, destDir string) error {
 	defer r.Close()
 
 	for _, f := range r.File {
-		fpath := filepath.Join(destDir, f.Name)
+		stripedPath := strings.SplitN(filepath.ToSlash(f.Name), "/", 2)
+		if len(stripedPath) < 2 {
+			continue
+		}
+
+		if stripedPath[1] == "" {
+			continue
+		}
+
+		fpath := filepath.Join(destDir, stripedPath[1])
 
 		if !strings.HasPrefix(filepath.Clean(fpath), filepath.Clean(destDir)+string(os.PathSeparator)) {
 			return fmt.Errorf("illegal file path: %s", fpath)
@@ -55,11 +71,12 @@ func ExtractZip(zipPath, destDir string) error {
 		if err != nil {
 			return err
 		}
-		defer rc.Close()
 
 		if err := extractFile(rc, fpath, f.Mode()); err != nil {
+			rc.Close()
 			return err
 		}
+		rc.Close()
 	}
 
 	if len(r.File) == 0 {
@@ -88,7 +105,7 @@ func ExtractTarGz(currentOS platform.OS, src, destDir string) error {
 
 	for {
 		headers, err := tr.Next()
-		if err == io.EOF {
+		if errors.Is(err, io.EOF) {
 			break
 		}
 
@@ -129,6 +146,32 @@ func ExtractTarGz(currentOS platform.OS, src, destDir string) error {
 		}
 	}
 	return nil
+}
+
+func detectArchiveType(src string) (string, error) {
+	f, err := os.Open(src)
+	if err != nil {
+		return "", err
+	}
+	defer f.Close()
+
+	magic := make([]byte, 4)
+	n, err := io.ReadFull(f, magic)
+	if err != nil && !errors.Is(err, io.ErrUnexpectedEOF) {
+		return "", err
+	}
+
+	magic = magic[:n]
+
+	if bytes.HasPrefix(magic, []byte{'P', 'K'}) {
+		return "zip", nil
+	}
+
+	if bytes.HasPrefix(magic, []byte{0x1F, 0x8B}) {
+		return "tar.gz", nil
+	}
+
+	return "", fmt.Errorf("unknown archive format")
 }
 
 func extractFile(r io.Reader, destPath string, mode os.FileMode) error {

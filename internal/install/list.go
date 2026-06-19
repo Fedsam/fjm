@@ -52,6 +52,7 @@ func ParseRelease(filename string) (map[string]string, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer f.Close()
 
 	var res map[string]string
 	res = make(map[string]string)
